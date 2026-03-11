@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Models available for this API key
+// Allow up to 5 minutes for Gemini to generate 30 questions
+export const maxDuration = 300;
+
 const MODELS = [
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-001',
   'gemini-2.5-flash',
   'gemini-flash-latest',
 ];
@@ -54,7 +54,11 @@ async function tryModel(model: string, prompt: string, apiKey: string): Promise<
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 16384,
+          responseMimeType: 'application/json',
+        },
       }),
     });
 
