@@ -132,14 +132,22 @@ export default function RequisitionDetailsPage() {
                 cands.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
                 setCandidates(cands);
 
-                // Load test sessions
-                const sessions: Record<string, { token: string; status: string; blockResults?: BlockResult[]; aiRecommendation?: string; overallScore?: number; psychotype?: string }> = {};
+                // Load test sessions — always use the LATEST test per candidate
+                const sessions: Record<string, { id?: string; token: string; status: string; blockResults?: BlockResult[]; aiRecommendation?: string; overallScore?: number; psychotype?: string }> = {};
                 for (const c of cands) {
                     const tq = query(collection(db, 'tests'), where('candidateId', '==', c.id));
                     const tSnap = await getDocs(tq);
                     if (!tSnap.empty) {
-                        const t = tSnap.docs[0].data();
-                        sessions[c.id] = { token: t.token, status: t.status, blockResults: t.blockResults, aiRecommendation: t.aiRecommendation, overallScore: t.overallScore, psychotype: t.psychotype };
+                        // Sort by createdAt desc in JS to always get the latest test (avoids needing a composite index)
+                        const sorted = tSnap.docs.slice().sort((a, b) => {
+                            const ta = a.data().createdAt?.toMillis?.() ?? 0;
+                            const tb = b.data().createdAt?.toMillis?.() ?? 0;
+                            return tb - ta; // newest first
+                        });
+                        const latestDoc = sorted[0];
+                        const t = latestDoc.data();
+                        // Store the doc ID so handleGenerateTest can delete it when regenerating
+                        sessions[c.id] = { id: latestDoc.id, token: t.token, status: t.status, blockResults: t.blockResults, aiRecommendation: t.aiRecommendation, overallScore: t.overallScore, psychotype: t.psychotype };
                     }
                 }
                 setTestSessions(sessions);
@@ -1198,7 +1206,7 @@ export default function RequisitionDetailsPage() {
                                                                 {(cand as any).interviewDate ? '✏️ Изменить дату' : 'назначить интервью'}
                                                             </button>
                                                         )}
-                                                        {/* Внести результаты — results-only button after interview is scheduled and pending */}
+                                                        {/* Внести результаты — only when interview is scheduled and pending */}
                                                         {(cand as any).interviewDate && (
                                                             <>
                                                                 {(!((cand as any).interviewOutcome) || (cand as any).interviewOutcome === 'pending') && (
@@ -1221,11 +1229,14 @@ export default function RequisitionDetailsPage() {
                                                                         <CheckCircle className="w-3.5 h-3.5" /> Внести результаты
                                                                     </button>
                                                                 )}
-                                                                <a href={`/ru/dashboard/requisitions/${id}/report/${cand.id}`} target="_blank" rel="noreferrer"
-                                                                    className="flex items-center gap-1.5 px-3 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl font-medium text-xs transition-colors">
-                                                                    <FileText className="w-3.5 h-3.5" /> Отчёт
-                                                                </a>
                                                             </>
+                                                        )}
+                                                        {/* Отчёт — available after test is completed, regardless of interview */}
+                                                        {(testSession?.status === 'completed' || (cand as any).interviewDate) && (
+                                                            <a href={`/ru/dashboard/requisitions/${id}/report/${cand.id}`} target="_blank" rel="noreferrer"
+                                                                className="flex items-center gap-1.5 px-3 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl font-medium text-xs transition-colors">
+                                                                <FileText className="w-3.5 h-3.5" /> Отчёт
+                                                            </a>
                                                         )}
                                                         {/* Reject / Unreject — #9 */}
                                                         {(cand as any).status === 'rejected' ? (

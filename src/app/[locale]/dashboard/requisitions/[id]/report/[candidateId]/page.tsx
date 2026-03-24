@@ -42,11 +42,17 @@ export default function CandidateReportPage() {
                 if (reqSnap.exists()) setRequisition({ id: reqSnap.id, ...reqSnap.data() } as Requisition);
                 if (candSnap.exists()) setCandidate({ id: candSnap.id, ...candSnap.data() } as Candidate);
 
-                // Load test session
+                // Load test session — always pick the LATEST test for this candidate
                 const tq = query(collection(db, 'tests'), where('candidateId', '==', candidateId));
                 const tSnap = await getDocs(tq);
                 if (!tSnap.empty) {
-                    const t = tSnap.docs[0].data();
+                    // Sort by createdAt desc in JS to get the latest test (no composite index needed)
+                    const sorted = tSnap.docs.slice().sort((a, b) => {
+                        const ta = a.data().createdAt?.toMillis?.() ?? 0;
+                        const tb = b.data().createdAt?.toMillis?.() ?? 0;
+                        return tb - ta;
+                    });
+                    const t = sorted[0].data();
                     setTestSession({
                         status: t.status,
                         blockResults: t.blockResults,
@@ -198,6 +204,24 @@ export default function CandidateReportPage() {
                             <InfoCell label="Рекоменд. роль" value={(candidate as any).aiRecommendedRole || '—'} />
                             <InfoCell label="Опыт / Сфера" value={`${candidate.aiExperience || '—'} · ${candidate.aiField || '—'}`} />
                         </div>
+                        {/* Resume download link */}
+                        {(candidate as any).resumeUrl && (
+                            <div style={{ marginBottom: '8px' }}>
+                                <a
+                                    href={(candidate as any).resumeUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                        padding: '5px 12px', background: '#eff6ff', border: '1px solid #bfdbfe',
+                                        borderRadius: '8px', fontSize: '9.5pt', fontWeight: 700,
+                                        color: '#1d4ed8', textDecoration: 'none',
+                                    }}
+                                >
+                                    📄 Скачать резюме (оригинал)
+                                </a>
+                            </div>
+                        )}
                         {candidate.aiStrengths && (
                             <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '8px 10px', marginBottom: '6px' }}>
                                 <div style={{ fontSize: '9pt', fontWeight: 700, color: '#166534', marginBottom: '3px' }}>💪 СИЛЬНЫЕ СТОРОНЫ</div>

@@ -77,3 +77,25 @@ body {
 .select-field-icon {
     padding-left: 2.25rem;
 }
+
+/* ── Print styles: hide sidebar and nav elements ────────────────────── */
+@media print {
+    /* Force-hide sidebar — md:flex can override Tailwind's print:hidden */
+    [class*="w-64"],
+    [class*="w-72"] {
+        display: none !important;
+    }
+
+    /* Hide mobile nav bars */
+    [class*="fixed bottom-0"],
+    [class*="md:hidden"] {
+        display: none !important;
+    }
+
+    /* Ensure main content takes full width */
+    main {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: none !important;
+    }
+}
