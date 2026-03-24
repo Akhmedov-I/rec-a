@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Link, usePathname } from '@/i18n/routing';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import CandidateSearchModal from '@/components/CandidateSearchModal';
 import {
     Loader2,
     LayoutDashboard,
@@ -16,6 +17,7 @@ import {
     Database,
     Calendar,
     Menu,
+    Search,
     X
 } from 'lucide-react';
 
@@ -23,6 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const { profile } = useAuth();
     const pathname = usePathname();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
 
     if (!profile) return (
         <div className="flex h-screen items-center justify-center bg-gray-50/50">
@@ -100,6 +103,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             );
                         })}
                     </nav>
+                    {/* Search button */}
+                    <div className="px-3 lg:px-4 pb-3">
+                        <button
+                            onClick={() => setSearchOpen(true)}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 text-gray-500 hover:text-blue-600 transition-all text-sm font-semibold"
+                        >
+                            <Search className="w-4 h-4 shrink-0" />
+                            Поиск кандидата
+                            <span className="ml-auto text-[10px] bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded font-mono">Ctrl K</span>
+                        </button>
+                    </div>
                     <div className="p-4 border-t border-gray-100 bg-gray-50/50">
                         <Link href="/dashboard/profile" className="flex items-center gap-3 hover:bg-gray-100 p-2.5 rounded-2xl transition-all cursor-pointer border border-transparent hover:border-gray-200">
                             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-base shadow-md flex-shrink-0">
@@ -114,6 +128,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         </Link>
                     </div>
                 </div>
+
+            {/* Global search modal */}
+            {searchOpen && <CandidateSearchModal onClose={() => setSearchOpen(false)} />}
 
                 {/* ── Mobile: Overlay slide-in menu ── */}
                 {mobileMenuOpen && (

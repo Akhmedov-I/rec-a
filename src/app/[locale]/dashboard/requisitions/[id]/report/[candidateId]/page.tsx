@@ -13,12 +13,20 @@ const today = () => {
     return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
+type TestQuestion = { question: string; options: string[]; correctAnswer: number };
 type TestSession = {
     status: string;
     blockResults?: BlockResult[];
     aiRecommendation?: string;
     overallScore?: number;
     psychotype?: string;
+    // Full question lists per block (for Q&A page)
+    b1Questions?: TestQuestion[];
+    b2Questions?: TestQuestion[];
+    b3Questions?: TestQuestion[];
+    b1Answers?: number[];
+    b2Answers?: number[];
+    b3Answers?: number[];
 };
 
 /* ─────────────────────────────────────────────────────────────────────────── */
@@ -53,12 +61,19 @@ export default function CandidateReportPage() {
                         return tb - ta;
                     });
                     const t = sorted[0].data();
+                    const br = (t.blockResults || []) as Array<{ questions: TestQuestion[]; answers: number[]; score: number; maxScore: number; blockName: string }>;
                     setTestSession({
                         status: t.status,
                         blockResults: t.blockResults,
                         aiRecommendation: t.aiRecommendation,
                         overallScore: t.overallScore,
                         psychotype: t.psychotype,
+                        b1Questions: br[0]?.questions ?? [],
+                        b2Questions: br[1]?.questions ?? [],
+                        b3Questions: br[2]?.questions ?? [],
+                        b1Answers: br[0]?.answers ?? [],
+                        b2Answers: br[1]?.answers ?? [],
+                        b3Answers: br[2]?.answers ?? [],
                     });
                 }
             } catch (e) { console.error(e); }
@@ -370,6 +385,38 @@ export default function CandidateReportPage() {
                         </div>
                     </section>
                 </div>
+
+                {/* ════ PAGE 3 — Detailed Q&A ════ */}
+                {testSession && (
+                    <>
+                        <div className="page-break" />
+                        <div style={{ paddingTop: '8mm' }}>
+                            <div style={{ borderBottom: '2px solid #1d4ed8', paddingBottom: '8px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
+                                <h1 style={{ fontSize: '16pt', fontWeight: 900, color: '#1e3a8a', margin: 0 }}>Детальные ответы</h1>
+                                <div style={{ fontSize: '10pt', fontWeight: 700, color: '#6b7280', alignSelf: 'flex-end' }}>{candidate.fullName} · {today()}</div>
+                            </div>
+                            <QABlock
+                                title="Блок 1 · Личностный профиль"
+                                color="#7c3aed" bg="#f5f3ff" border="#ddd6fe"
+                                questions={testSession.b1Questions ?? []}
+                                answers={testSession.b1Answers ?? []}
+                                isPersonality
+                            />
+                            <QABlock
+                                title="Блок 2 · Логика и аналитическое мышление"
+                                color="#1d4ed8" bg="#eff6ff" border="#bfdbfe"
+                                questions={testSession.b2Questions ?? []}
+                                answers={testSession.b2Answers ?? []}
+                            />
+                            <QABlock
+                                title="Блок 3 · Профессиональные знания"
+                                color="#065f46" bg="#f0fdf4" border="#bbf7d0"
+                                questions={testSession.b3Questions ?? []}
+                                answers={testSession.b3Answers ?? []}
+                            />
+                        </div>
+                    </>
+                )}
             </div>
         </>
     );
@@ -401,6 +448,59 @@ function BlockSummary({
                 <div style={{ fontSize: '9pt', color }}>Правильно: <strong>{correct}/{total} ({pct}%)</strong></div>
             )}
             {noScore && <div style={{ fontSize: '9pt', color: '#9ca3af' }}>Баллы не начисляются</div>}
+        </div>
+    );
+}
+
+function QABlock({
+    title, color, bg, border, questions, answers, isPersonality
+}: {
+    title: string; color: string; bg: string; border: string;
+    questions: Array<{ question: string; options: string[]; correctAnswer: number }>;
+    answers: number[];
+    isPersonality?: boolean;
+}) {
+    if (!questions || questions.length === 0) return null;
+    return (
+        <div style={{ marginBottom: '14px' }}>
+            <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: '6px', padding: '6px 10px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '9pt', fontWeight: 800, color }}>{title}</span>
+                {isPersonality && <span style={{ fontSize: '8pt', color: '#6b7280', marginLeft: '8px', fontStyle: 'italic' }}>(ответы не оцениваются, отражают психотип)</span>}
+            </div>
+            {questions.map((q, qi) => {
+                const chosen = answers[qi] ?? -1;
+                const correct = q.correctAnswer ?? -1;
+                return (
+                    <div key={qi} style={{ marginBottom: '8px', pageBreakInside: 'avoid' }}>
+                        <div style={{ fontSize: '9pt', fontWeight: 700, color: '#111827', marginBottom: '4px' }}>
+                            {qi + 1}. {q.question}
+                        </div>
+                        <div style={{ paddingLeft: '12px' }}>
+                            {(q.options || []).map((opt, oi) => {
+                                const isChosen = chosen === oi;
+                                const isCorrect = correct === oi;
+                                let optBg = 'transparent';
+                                let optBorder = '1px solid #e5e7eb';
+                                let optColor = '#374151';
+                                let prefix = '';
+                                if (!isPersonality) {
+                                    if (isChosen && isCorrect) { optBg = '#f0fdf4'; optBorder = '1.5px solid #22c55e'; optColor = '#166534'; prefix = '✅ '; }
+                                    else if (isChosen && !isCorrect) { optBg = '#fef2f2'; optBorder = '1.5px solid #ef4444'; optColor = '#991b1b'; prefix = '❌ '; }
+                                    else if (isCorrect) { optBg = '#f0fdf4'; optBorder = '1px solid #bbf7d0'; optColor = '#166534'; prefix = '✓ '; }
+                                } else {
+                                    if (isChosen) { optBg = '#eff6ff'; optBorder = '1.5px solid #3b82f6'; optColor = '#1d4ed8'; prefix = '● '; }
+                                }
+                                return (
+                                    <div key={oi} style={{ background: optBg, border: optBorder, borderRadius: '4px', padding: '3px 7px', marginBottom: '2px', fontSize: '8.5pt', color: optColor, fontWeight: isChosen ? 700 : 400 }}>
+                                        {prefix}{String.fromCharCode(65 + oi)}. {opt}
+                                    </div>
+                                );
+                            })}
+                            {chosen === -1 && <div style={{ fontSize: '8pt', color: '#9ca3af', fontStyle: 'italic' }}>— вопрос пропущен</div>}
+                        </div>
+                    </div>
+                );
+            })}
         </div>
     );
 }
