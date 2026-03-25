@@ -75,6 +75,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {/* ── Sidebar (desktop ≥ md) ── */}
                 <div className="w-64 lg:w-72 bg-white border-r border-gray-100 shadow-sm hidden md:flex flex-col print:hidden flex-shrink-0">
                     <nav className="flex-1 px-3 lg:px-4 py-6 space-y-1.5 overflow-y-auto">
+                        {/* Search button */}
+                        <button
+                            onClick={() => setSearchOpen(true)}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 mb-2 rounded-xl bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 text-gray-500 hover:text-blue-600 transition-all text-sm font-semibold"
+                        >
+                            <Search className="w-4 h-4 shrink-0" />
+                            Поиск кандидата
+                            <span className="ml-auto text-[10px] bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded font-mono">Ctrl K</span>
+                        </button>
                         {canCreateReq && (
                             <Link
                                 href="/dashboard/requisitions/create"
@@ -103,17 +112,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             );
                         })}
                     </nav>
-                    {/* Search button */}
-                    <div className="px-3 lg:px-4 pb-3">
-                        <button
-                            onClick={() => setSearchOpen(true)}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 text-gray-500 hover:text-blue-600 transition-all text-sm font-semibold"
-                        >
-                            <Search className="w-4 h-4 shrink-0" />
-                            Поиск кандидата
-                            <span className="ml-auto text-[10px] bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded font-mono">Ctrl K</span>
-                        </button>
-                    </div>
+
                     <div className="p-4 border-t border-gray-100 bg-gray-50/50">
                         <Link href="/dashboard/profile" className="flex items-center gap-3 hover:bg-gray-100 p-2.5 rounded-2xl transition-all cursor-pointer border border-transparent hover:border-gray-200">
                             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-base shadow-md flex-shrink-0">
