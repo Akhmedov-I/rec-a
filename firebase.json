@@ -1,5 +1,7 @@
 {
   "firestore": {
+    "database": "(default)",
+    "location": "us-central1",
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
@@ -18,6 +20,15 @@
       "memory": "1GiB",
       "cpu": 1,
       "timeoutSeconds": 300
+    }
+  },
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "PBG ERP Platform",
+        "supportEmail": "islombek1993@gmail.com"
+      }
     }
   }
 }

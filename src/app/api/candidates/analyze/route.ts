@@ -5,13 +5,13 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
-// Models confirmed working for this API key (tested via ListModels + direct call)
-// gemini-flash-latest is the alias that works on v1beta for this key
+// Stable models ordered by preference (most available first)
 const GEMINI_CANDIDATES = [
-    { base: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-flash-latest' },
-    { base: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-pro-latest' },
-    { base: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-2.5-flash' },
-    { base: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-2.5-pro' },
+    { base: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-2.0-flash' },
+    { base: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-2.0-flash-lite' },
+    { base: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-1.5-flash' },
+    { base: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-1.5-pro' },
+    { base: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-2.5-flash-preview-04-17' },
 ];
 
 async function callGemini(parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }>) {
