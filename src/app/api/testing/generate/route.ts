@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 export const maxDuration = 300;
 
 const MODELS = [
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-lite',
-  'gemini-1.5-flash',
-  'gemini-1.5-pro',
+  'gemini-2.5-flash',
+  'gemini-flash-latest',
+  'gemini-2.5-pro',
+  'gemini-pro-latest',
 ];
 
 export async function POST(req: NextRequest) {
