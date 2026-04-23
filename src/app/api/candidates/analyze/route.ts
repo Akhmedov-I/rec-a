@@ -25,8 +25,11 @@ async function callGemini(parts: Array<{ text: string } | { inlineData: { mimeTy
                     contents: [{ parts }],
                     generationConfig: {
                         temperature: 0.3,
-                        maxOutputTokens: 4096,
-                    }
+                        maxOutputTokens: 8192,
+                        responseMimeType: 'application/json',
+                        // Disable thinking for gemini-2.5-* to not eat output token budget
+                        thinkingConfig: { thinkingBudget: 0 },
+                    },
                 }),
             });
             const data = await res.json();

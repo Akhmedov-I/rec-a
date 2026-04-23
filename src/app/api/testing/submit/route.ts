@@ -100,7 +100,11 @@ ${b1AnswerTexts || 'Нет данных'}
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.4, maxOutputTokens: 1024 },
+                generationConfig: {
+                    temperature: 0.4,
+                    maxOutputTokens: 2048,
+                    thinkingConfig: { thinkingBudget: 0 },
+                },
             }),
         });
 

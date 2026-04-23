@@ -60,6 +60,7 @@ async function tryModel(model: string, prompt: string, apiKey: string): Promise<
           temperature: 0.7,
           maxOutputTokens: 16384,
           responseMimeType: 'application/json',
+          thinkingConfig: { thinkingBudget: 0 },
         },
       }),
     });
